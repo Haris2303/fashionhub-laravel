@@ -1,7 +1,7 @@
 import React from "react";
 import { Head, Link } from "@inertiajs/react";
 
-export default function Home({ categories, products }) {
+export default function Home({ categories, products, auth = {} }) {
     // Fungsi untuk format angka ke Rupiah
     const formatRupiah = (number) => {
         return new Intl.NumberFormat("id-ID", {
@@ -26,12 +26,18 @@ export default function Home({ categories, products }) {
                             FashionHub
                         </Link>
                         <div className="flex items-center space-x-6">
-                            <Link
-                                href="#"
-                                className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition"
-                            >
-                                Login
-                            </Link>
+                            {auth.user ? (
+                                <span className="text-sm font-medium text-gray-700">
+                                    Halo, {auth.user.name}
+                                </span>
+                            ) : (
+                                <Link
+                                    href="/login"
+                                    className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition"
+                                >
+                                    Login
+                                </Link>
+                            )}
                             <Link href="#" className="relative group">
                                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
                                     0
