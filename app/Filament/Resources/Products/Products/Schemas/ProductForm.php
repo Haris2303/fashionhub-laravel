@@ -33,8 +33,10 @@ class ProductForm
                         FileUpload::make('image')
                             ->label('Foto Produk')
                             ->image()
+                            ->disk('public')
                             ->directory('products')
                             ->columnSpanFull()
+                            ->visibility('public')
                             ->required(),
 
                         Textarea::make('description')
