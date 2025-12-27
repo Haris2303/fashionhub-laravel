@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Head, Link } from "@inertiajs/react";
+import { Head, Link, router } from "@inertiajs/react";
 
 export default function Detail({ product }) {
     // State untuk pilihan user
@@ -21,6 +21,31 @@ export default function Detail({ product }) {
             currency: "IDR",
             minimumFractionDigits: 0,
         }).format(number);
+    };
+
+    const addToCart = () => {
+        const foundVariant = product.variants.find(
+            (v) => v.size === selectedSize && v.color === selectedColor
+        );
+
+        if (!foundVariant) return;
+
+        router.post(
+            "/cart/add",
+            {
+                product_id: product.id,
+                product_variant_id: foundVariant.id,
+                quantity: 1,
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => alert("Berhasil masuk keranjang!"),
+                onError: (errors) => {
+                    if (errors.quantity) alert(errors.quantity);
+                    else alert("Gagal menambahkan. Pastikan Anda sudah login.");
+                },
+            }
+        );
     };
 
     // Efek saat user ganti Size atau Color
@@ -178,6 +203,7 @@ export default function Detail({ product }) {
                                 </div>
 
                                 <button
+                                    onClick={addToCart}
                                     disabled={
                                         !selectedSize ||
                                         !selectedColor ||

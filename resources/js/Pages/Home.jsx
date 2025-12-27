@@ -38,9 +38,11 @@ export default function Home({ categories, products, auth = {} }) {
                                     Login
                                 </Link>
                             )}
-                            <Link href="#" className="relative group">
+                            <Link href="/cart" className="relative group">
                                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
-                                    0
+                                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+                                        !
+                                    </span>
                                 </span>
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
