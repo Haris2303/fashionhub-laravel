@@ -1,14 +1,76 @@
-import React from "react";
-import { Head, Link } from "@inertiajs/react";
+import React, { useState } from "react";
+import { Head, Link, router } from "@inertiajs/react";
 
-export default function Home({ categories, products, auth = {} }) {
-    // Fungsi untuk format angka ke Rupiah
+// Komponen Pagination
+const Pagination = ({ links }) => {
+    return (
+        <div className="flex justify-center gap-1 mt-10 flex-wrap">
+            {links.map((link, index) => {
+                if (!link.url) {
+                    return (
+                        <div
+                            key={index}
+                            dangerouslySetInnerHTML={{ __html: link.label }}
+                            className="px-4 py-2 border rounded-md text-sm bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                        />
+                    );
+                }
+                return (
+                    <Link
+                        key={index}
+                        href={link.url}
+                        dangerouslySetInnerHTML={{ __html: link.label }}
+                        className={`px-4 py-2 border rounded-md text-sm transition ${
+                            link.active
+                                ? "bg-indigo-600 text-white border-indigo-600"
+                                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                        }`}
+                    />
+                );
+            })}
+        </div>
+    );
+};
+
+// Tambahkan prop cartCount di sini
+export default function Home({
+    categories,
+    products,
+    filters = {},
+    auth = {},
+    cartCount = 0,
+}) {
+    const [searchTerm, setSearchTerm] = useState(filters.search || "");
+
     const formatRupiah = (number) => {
         return new Intl.NumberFormat("id-ID", {
             style: "currency",
             currency: "IDR",
             minimumFractionDigits: 0,
         }).format(number);
+    };
+
+    const handleSearch = (e) => {
+        e.preventDefault();
+        router.get(
+            "/",
+            {
+                search: searchTerm,
+                category_id: filters.category_id,
+            },
+            { preserveState: true, preserveScroll: true }
+        );
+    };
+
+    const handleCategory = (id) => {
+        router.get(
+            "/",
+            {
+                search: filters.search,
+                category_id: id,
+            },
+            { preserveState: true, preserveScroll: true }
+        );
     };
 
     return (
@@ -18,18 +80,64 @@ export default function Home({ categories, products, auth = {} }) {
             {/* Navbar */}
             <nav className="bg-white shadow-sm sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between h-16 items-center">
+                    <div className="flex flex-col sm:flex-row justify-between items-center py-3 sm:h-20 gap-4">
+                        {/* Logo */}
                         <Link
                             href="/"
-                            className="text-2xl font-bold tracking-tight text-indigo-600"
+                            className="text-2xl font-bold tracking-tight text-indigo-600 flex-shrink-0"
                         >
                             FashionHub
                         </Link>
-                        <div className="flex items-center space-x-6">
+
+                        {/* Search Bar */}
+                        <form
+                            onSubmit={handleSearch}
+                            className="w-full sm:max-w-md relative"
+                        >
+                            <input
+                                type="text"
+                                placeholder="Cari produk..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full border border-gray-300 rounded-full py-2 pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                            />
+                            <button
+                                type="submit"
+                                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-indigo-600"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    strokeWidth={2}
+                                    stroke="currentColor"
+                                    className="w-5 h-5"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+                                    />
+                                </svg>
+                            </button>
+                        </form>
+
+                        {/* Menu Kanan */}
+                        <div className="flex items-center space-x-6 flex-shrink-0">
                             {auth.user ? (
-                                <span className="text-sm font-medium text-gray-700">
-                                    Halo, {auth.user.name}
-                                </span>
+                                <>
+                                    <div className="hidden md:block">
+                                        <span className="text-sm font-medium text-gray-700">
+                                            Halo, {auth.user.name}
+                                        </span>
+                                    </div>
+                                    <Link
+                                        href="/my-orders"
+                                        className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition"
+                                    >
+                                        Pesanan Saya
+                                    </Link>
+                                </>
                             ) : (
                                 <Link
                                     href="/login"
@@ -38,19 +146,22 @@ export default function Home({ categories, products, auth = {} }) {
                                     Login
                                 </Link>
                             )}
+
+                            {/* --- ICON KERANJANG UPDATE --- */}
                             <Link href="/cart" className="relative group">
-                                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
-                                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
-                                        !
+                                {/* Hanya tampilkan badge merah jika cartCount > 0 */}
+                                {cartCount > 0 && (
+                                    <span className="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm border border-white">
+                                        {cartCount}
                                     </span>
-                                </span>
+                                )}
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     fill="none"
                                     viewBox="0 0 24 24"
                                     strokeWidth={1.5}
                                     stroke="currentColor"
-                                    className="w-6 h-6 text-gray-700 group-hover:text-indigo-600"
+                                    className="w-6 h-6 text-gray-700 group-hover:text-indigo-600 transition"
                                 >
                                     <path
                                         strokeLinecap="round"
@@ -70,7 +181,7 @@ export default function Home({ categories, products, auth = {} }) {
                     <img
                         src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=2070&auto=format&fit=crop"
                         className="w-full h-full object-cover"
-                        alt="Hero Background"
+                        alt="Hero"
                     />
                 </div>
                 <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32 flex flex-col items-center text-center">
@@ -90,7 +201,7 @@ export default function Home({ categories, products, auth = {} }) {
                 </div>
             </div>
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16">
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12">
                 {/* Kategori */}
                 <section>
                     <div className="flex items-center justify-between mb-6">
@@ -98,38 +209,45 @@ export default function Home({ categories, products, auth = {} }) {
                             Kategori Pilihan
                         </h3>
                     </div>
-                    <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+                    <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
+                        <button
+                            onClick={() => handleCategory("")}
+                            className={`flex-shrink-0 px-6 py-2 rounded-full font-medium transition whitespace-nowrap border ${
+                                !filters.category_id
+                                    ? "bg-indigo-600 text-white border-indigo-600"
+                                    : "bg-white text-gray-700 border-gray-200 hover:border-indigo-600 hover:text-indigo-600"
+                            }`}
+                        >
+                            Semua
+                        </button>
                         {categories.map((category) => (
-                            <Link
+                            <button
                                 key={category.id}
-                                href="#"
-                                className="flex-shrink-0 group"
+                                onClick={() => handleCategory(category.id)}
+                                className={`flex-shrink-0 px-6 py-2 rounded-full font-medium transition whitespace-nowrap border ${
+                                    filters.category_id == category.id
+                                        ? "bg-indigo-600 text-white border-indigo-600"
+                                        : "bg-white text-gray-700 border-gray-200 hover:border-indigo-600 hover:text-indigo-600"
+                                }`}
                             >
-                                <div className="px-6 py-3 bg-white border border-gray-200 rounded-full shadow-sm text-gray-700 font-medium group-hover:border-indigo-600 group-hover:text-indigo-600 transition whitespace-nowrap">
-                                    {category.name}
-                                </div>
-                            </Link>
+                                {category.name}
+                            </button>
                         ))}
                     </div>
                 </section>
 
-                {/* Produk Grid */}
+                {/* Produk */}
                 <section id="products">
                     <div className="flex items-center justify-between mb-6">
                         <h3 className="text-2xl font-bold text-gray-900">
-                            Produk Terbaru
+                            {filters.search
+                                ? `Hasil Cari: "${filters.search}"`
+                                : "Produk Terbaru"}
                         </h3>
-                        <Link
-                            href="#"
-                            className="text-indigo-600 font-medium hover:text-indigo-700"
-                        >
-                            Lihat Semua &rarr;
-                        </Link>
                     </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-                        {products.map((product) => {
-                            // Logika Ambil Harga: Ambil harga varian pertama (biasanya termurah/default)
+                        {products.data.map((product) => {
                             const firstVariant =
                                 product.variants && product.variants.length > 0
                                     ? product.variants[0]
@@ -141,29 +259,30 @@ export default function Home({ categories, products, auth = {} }) {
                             return (
                                 <Link
                                     key={product.id}
-                                    href={`/product/${product.id}`}
-                                    className="group bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300"
+                                    href={`/product/${
+                                        product.slug ?? product.id
+                                    }`}
+                                    className="group bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full"
                                 >
-                                    {/* Gambar dengan Aspect Ratio Kotak */}
                                     <div className="relative aspect-square bg-gray-100 overflow-hidden">
                                         <img
                                             src={`/storage/${product.image}`}
                                             alt={product.name}
                                             className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
                                         />
-                                        {/* Label Kategori */}
                                         <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded text-xs font-semibold text-gray-600">
-                                            {product.category.name}
+                                            {product.category?.name}
                                         </div>
                                     </div>
-
-                                    <div className="p-4">
-                                        <h4
-                                            className="font-semibold text-gray-900 truncate mb-1"
-                                            title={product.name}
-                                        >
-                                            {product.name}
-                                        </h4>
+                                    <div className="p-4 flex flex-col flex-grow justify-between">
+                                        <div>
+                                            <h4
+                                                className="font-semibold text-gray-900 truncate mb-1"
+                                                title={product.name}
+                                            >
+                                                {product.name}
+                                            </h4>
+                                        </div>
                                         <div className="flex items-end justify-between mt-2">
                                             <div className="flex flex-col">
                                                 <span className="text-xs text-gray-500">
@@ -195,11 +314,22 @@ export default function Home({ categories, products, auth = {} }) {
                             );
                         })}
                     </div>
-                    {products.length === 0 && (
-                        <div className="text-center py-12 text-gray-500">
-                            Belum ada produk yang tersedia.
+
+                    {products.data.length === 0 && (
+                        <div className="text-center py-16 bg-white rounded-xl border border-dashed border-gray-300">
+                            <p className="text-gray-500 text-lg mb-2">
+                                Produk tidak ditemukan.
+                            </p>
+                            <button
+                                onClick={() => router.get("/")}
+                                className="text-indigo-600 font-bold hover:underline"
+                            >
+                                Reset Filter
+                            </button>
                         </div>
                     )}
+
+                    <Pagination links={products.links} />
                 </section>
             </main>
 

@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Transactions\Transactions\Tables;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -26,6 +27,12 @@ class TransactionsTable
                     ->label('Total')
                     ->money('IDR')
                     ->sortable(),
+
+                ImageColumn::make('payment.payment_proof')
+                    ->label('Bukti TF')
+                    ->disk('public')
+                    ->visibility('public')
+                    ->square(),
 
                 TextColumn::make('status')
                     ->badge()
