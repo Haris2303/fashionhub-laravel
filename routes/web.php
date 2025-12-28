@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AddressController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
@@ -35,4 +36,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/payment/{id}', [PaymentController::class, 'store'])->name('payment.store');
 
     Route::get('/my-orders', [OrderController::class, 'index'])->name('orders.index');
+
+    Route::get('/addresses', [AddressController::class, 'index'])->name('address.index');
+    Route::post('/addresses', [AddressController::class, 'store']);
+    Route::put('/addresses/{id}', [AddressController::class, 'update']);
+    Route::delete('/addresses/{id}', [AddressController::class, 'destroy']);
+    Route::post('/addresses/{id}/default', [AddressController::class, 'setDefault']);
 });

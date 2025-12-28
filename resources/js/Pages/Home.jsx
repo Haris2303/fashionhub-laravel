@@ -137,6 +137,13 @@ export default function Home({
                                     >
                                         Pesanan Saya
                                     </Link>
+
+                                    <Link
+                                        href="/addresses"
+                                        className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition"
+                                    >
+                                        Alamat Saya
+                                    </Link>
                                 </>
                             ) : (
                                 <Link
