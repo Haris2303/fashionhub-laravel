@@ -266,9 +266,7 @@ export default function Home({
                             return (
                                 <Link
                                     key={product.id}
-                                    href={`/product/${
-                                        product.slug ?? product.id
-                                    }`}
+                                    href={`/product/${product.id}`}
                                     className="group bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full"
                                 >
                                     <div className="relative aspect-square bg-gray-100 overflow-hidden">

@@ -29,7 +29,7 @@ class HomeController extends Controller
             $cartCount = Cart::where('user_id', Auth::id())->sum('quantity');
         }
 
-        $products = Product::with('variants')
+        $products = Product::with(['variants', 'category'])
             ->when($request->search, function ($query, $search) {
                 $query->where('name', 'like', '%' . $search . '%')
                     ->orWhere('description', 'like', '%' . $search . '%');

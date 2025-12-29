@@ -212,10 +212,13 @@ export default function History({ orders }) {
                                         {order.items.map((item) => (
                                             <li
                                                 key={item.id}
-                                                className="py-4 flex gap-4"
+                                                className="py-4 flex gap-4 items-center"
                                             >
-                                                {/* Foto Produk */}
-                                                <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 border border-gray-200">
+                                                {/* Foto Produk (Klik menuju detail) */}
+                                                <Link
+                                                    href={`/product/${item.product_variant.product.slug}`}
+                                                    className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 border border-gray-200 hover:opacity-80 transition"
+                                                >
                                                     <img
                                                         src={`/storage/${item.product_variant.product.image}`}
                                                         alt={
@@ -224,16 +227,19 @@ export default function History({ orders }) {
                                                         }
                                                         className="w-full h-full object-cover"
                                                     />
-                                                </div>
+                                                </Link>
 
                                                 {/* Detail Produk */}
                                                 <div className="flex-1">
-                                                    <h4 className="font-medium text-gray-900 line-clamp-1">
+                                                    <Link
+                                                        href={`/product/${item.product_variant.product.slug}`}
+                                                        className="font-medium text-gray-900 line-clamp-1 hover:text-indigo-600 hover:underline"
+                                                    >
                                                         {
                                                             item.product_variant
                                                                 .product.name
                                                         }
-                                                    </h4>
+                                                    </Link>
                                                     <p className="text-sm text-gray-500 mb-1">
                                                         Size:{" "}
                                                         {
@@ -247,6 +253,19 @@ export default function History({ orders }) {
                                                             item.price
                                                         )}
                                                     </p>
+                                                </div>
+
+                                                {/* --- TOMBOL NAVIGASI KE PRODUK --- */}
+                                                <div>
+                                                    <Link
+                                                        href={`/product/${item.product_variant.product.id}`}
+                                                        className="text-xs font-bold border border-indigo-600 text-indigo-600 px-3 py-2 rounded-lg hover:bg-indigo-600 hover:text-white transition whitespace-nowrap"
+                                                    >
+                                                        {order.status ===
+                                                        "completed"
+                                                            ? "Beri Ulasan"
+                                                            : "Lihat Produk"}
+                                                    </Link>
                                                 </div>
                                             </li>
                                         ))}
