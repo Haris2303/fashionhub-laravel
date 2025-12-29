@@ -1,7 +1,22 @@
-import React from "react";
-import { Head, Link } from "@inertiajs/react";
+import React, { useEffect } from "react";
+import { Head, Link, usePage } from "@inertiajs/react";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function History({ orders }) {
+    const { flash } = usePage().props;
+
+    useEffect(() => {
+        if (flash.success) {
+            toast.success(flash.success, {
+                duration: 5000,
+                position: "top-center",
+            });
+        }
+        if (flash.error) {
+            toast.error(flash.error);
+        }
+    }, [flash]);
+
     // Helper Format Rupiah
     const formatRupiah = (number) => {
         return new Intl.NumberFormat("id-ID", {
@@ -29,6 +44,12 @@ export default function History({ orders }) {
                 return (
                     <span className="bg-yellow-100 text-yellow-800 text-xs px-3 py-1 rounded-full font-bold">
                         Menunggu Pembayaran
+                    </span>
+                );
+            case "waiting_approval":
+                return (
+                    <span className="bg-yellow-100 text-yellow-800 text-xs px-3 py-1 rounded-full font-bold">
+                        Menunggu Konfirmasi Admin
                     </span>
                 );
             case "paid":
@@ -73,6 +94,8 @@ export default function History({ orders }) {
     return (
         <div className="min-h-screen bg-gray-50 font-sans text-gray-900 pb-20">
             <Head title="Riwayat Pesanan" />
+
+            <Toaster />
 
             {/* Navbar Sederhana */}
             <div className="bg-white shadow-sm sticky top-0 z-10">

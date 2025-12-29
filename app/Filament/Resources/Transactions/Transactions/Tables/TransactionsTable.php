@@ -7,6 +7,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class TransactionsTable
@@ -38,6 +39,7 @@ class TransactionsTable
                     ->badge()
                     ->color(fn(string $state): string => match ($state) {
                         'pending' => 'warning',
+                        'waiting_approval' => 'warning',
                         'paid' => 'info',
                         'shipping' => 'primary',
                         'completed' => 'success',
@@ -50,7 +52,18 @@ class TransactionsTable
                     ->label('Waktu Order'),
             ])
             ->filters([
-                //
+                SelectFilter::make('status')
+                    ->label('Status Transaksi')
+                    ->multiple()
+                    ->options([
+                        'pending' => 'Pending (Belum Bayar)',
+                        'waiting_approval' => 'Menunggu Konfirmasi Admin',
+                        'paid' => 'Lunas (Siap Proses)',
+                        'processing' => 'Sedang Diproses / Packing',
+                        'shipped' => 'Sedang Dikirim',
+                        'completed' => 'Selesai',
+                        'failed' => 'Dibatalkan',
+                    ])
             ])
             ->recordActions([
                 EditAction::make(),

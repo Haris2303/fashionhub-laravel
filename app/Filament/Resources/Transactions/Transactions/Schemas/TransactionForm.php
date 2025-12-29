@@ -29,6 +29,7 @@ class TransactionForm
                                     ->label('Status Pesanan')
                                     ->options([
                                         'pending' => 'Pending (Menunggu Bayar)',
+                                        'waiting_approval' => 'Menunggu Konfirmasi Admin', // Tambahan Status Baru
                                         'paid' => 'Lunas (Siap Proses)',
                                         'processing' => 'Sedang Diproses / Packing',
                                         'shipped' => 'Sedang Dikirim',
@@ -44,7 +45,8 @@ class TransactionForm
                                         TextInput::make('delivery_courier')
                                             ->label('Nama Kurir')
                                             ->placeholder('JNE / J&T / SiCepat')
-                                            ->visible(fn(Get $get) => in_array($get('status'), ['processing', 'shipped', 'completed'])),
+                                            // Tampil jika status bukan pending/waiting/failed
+                                            ->visible(fn(Get $get) => in_array($get('status'), ['paid', 'processing', 'shipped', 'completed'])),
 
                                         TextInput::make('tracking_number')
                                             ->label('Nomor Resi')
@@ -59,23 +61,23 @@ class TransactionForm
                                 Repeater::make('items')
                                     ->relationship()
                                     ->schema([
-                                        TextInput::make('product_display') // Ganti nama field biar unik
+                                        TextInput::make('product_display')
                                             ->label('Produk')
                                             ->formatStateUsing(fn($record) => $record->productVariant->product->name . ' (' . $record->productVariant->size . ')')
                                             ->disabled()
-                                            ->dehydrated(false), // PENTING: Jangan simpan ke DB
+                                            ->dehydrated(false),
 
                                         TextInput::make('quantity')
                                             ->label('Qty')
                                             ->disabled()
-                                            ->dehydrated(false), // PENTING
+                                            ->dehydrated(false),
 
                                         TextInput::make('price')
-                                            ->label('Harga')
+                                            ->label('Harga Satuan')
                                             ->prefix('Rp')
                                             ->numeric()
                                             ->disabled()
-                                            ->dehydrated(false), // PENTING
+                                            ->dehydrated(false),
                                     ])
                                     ->deletable(false)
                                     ->addable(false)
@@ -90,40 +92,32 @@ class TransactionForm
                         // 3. SECTION INFO CUSTOMER
                         Section::make('Info Customer')
                             ->schema([
-                                // GANTI 'user.name' JADI 'customer_name'
                                 TextInput::make('customer_name')
                                     ->label('Nama Customer')
-                                    // Ambil data manual dari relasi
                                     ->formatStateUsing(fn($record) => $record->user->name)
                                     ->disabled()
-                                    ->dehydrated(false), // WAJIB: Biar gak error SQL 'Unknown column user'
+                                    ->dehydrated(false),
 
-                                Textarea::make('full_address')
-                                    ->label('Alamat Pengiriman')
-                                    ->rows(4)
-                                    ->formatStateUsing(fn($record) => $record->address ?
-                                        "{$record->address->recipient}\n{$record->address->complete_address}\n{$record->address->city} - {$record->address->postal_code}\nWA: {$record->user->telp}"
-                                        : 'Alamat dihapus')
+                                Textarea::make('address')
+                                    ->label('Detail Pengiriman (Nama, HP, Alamat)')
+                                    ->rows(5)
                                     ->disabled()
-                                    ->dehydrated(false), // WAJIB
+                                    ->formatStateUsing(fn($state) => str_replace('|', "\n\n", $state)),
                             ]),
 
-                        // 4. SECTION BUKTI BAYAR
                         Section::make('Bukti Pembayaran')
                             ->schema([
-                                // GANTI 'payment.payment_proof' JADI 'proof_display'
                                 FileUpload::make('proof_display')
                                     ->label('Foto Bukti Transfer')
                                     ->image()
                                     ->disk('public')
                                     ->visibility('public')
-                                    // Load gambar manual dari relasi payment
                                     ->afterStateHydrated(function ($component, $record) {
                                         $component->state($record->payment?->payment_proof);
                                     })
                                     ->openable()
                                     ->disabled()
-                                    ->dehydrated(false), // WAJIB: Biar gak error SQL 'Unknown column payment'
+                                    ->dehydrated(false),
                             ]),
                     ])
                     ->columnSpan(1),

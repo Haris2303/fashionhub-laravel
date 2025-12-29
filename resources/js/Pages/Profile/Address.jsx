@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react"; // <--- Import useEffect
-import { Head, Link, useForm, usePage } from "@inertiajs/react"; // <--- Import usePage
-import toast, { Toaster } from "react-hot-toast"; // <--- Import Toast
+import React, { useState, useEffect } from "react";
+import { Head, Link, useForm, usePage } from "@inertiajs/react";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function Address({ addresses }) {
     // Ambil props flash dari Inertia

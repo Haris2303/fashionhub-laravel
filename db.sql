@@ -9,3 +9,5 @@ select * from carts
 select * from transactions
 
 select * from transaction_items
+
+select * from addresses

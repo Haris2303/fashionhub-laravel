@@ -40,22 +40,16 @@ class PaymentController extends Controller
                 'transaction_id' => $transaction->id,
                 'payment_method' => 'bank_transfer', // Default sesuai migrasi Anda
                 'payment_proof' => $path,
-                'status' => 'pending', // Verifikasi admin nanti
+                'status' => 'waiting_approval', // Verifikasi admin nanti
             ]);
 
             $transaction = Transaction::where('user_id', Auth::id())->findOrFail($id);
 
-            // Upload File
-            if ($request->hasFile('proof_of_payment')) {
-                $path = $request->file('proof_of_payment')->store('payments', 'public');
-
-                $transaction->update([
-                    'proof_of_payment' => $path,
-                    'status' => 'pending',
-                ]);
-            }
+            $transaction->update([
+                'status' => 'waiting_approval',
+            ]);
         }
 
-        return redirect()->route('transaction.success', $transaction->id);
+        return redirect()->route('orders.index')->with('success', 'Bukti pembayaran berhasil diupload! Mohon tunggu konfirmasi admin.');
     }
 }

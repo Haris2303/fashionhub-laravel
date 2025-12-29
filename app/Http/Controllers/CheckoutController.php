@@ -16,27 +16,32 @@ class CheckoutController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $cartItems = Cart::with(['product', 'variant'])->where('user_id', $user->id)->get();
+
+        // Ambil Keranjang + Relasi Varian & Produk
+        $cartItems = Cart::with(['variant.product'])->where('user_id', $user->id)->get();
 
         if ($cartItems->isEmpty()) {
             return redirect()->route('cart.index');
         }
 
+        // Ambil Alamat User (Default paling atas)
+        $addresses = Address::where('user_id', $user->id)
+            ->orderBy('is_default', 'desc')
+            ->get();
+
         return Inertia::render('Checkout', [
             'cartItems' => $cartItems,
+            'addresses' => $addresses, // Kirim list alamat ke Frontend
             'user' => $user
         ]);
     }
 
     public function store(Request $request)
     {
-        // Validasi (HAPUS payment_method)
+        // 1. Validasi: Cukup ID Alamat & Nama Kurir
         $request->validate([
-            'recipient' => 'required|string|max:255',
-            'phone' => 'required|string|max:20',
-            'complete_address' => 'required|string',
-            'city' => 'required|string',
-            'postal_code' => 'required|string',
+            'address_id' => 'required|exists:addresses,id',
+            'courier' => 'required|string',
         ]);
 
         $user = Auth::user();
@@ -44,40 +49,34 @@ class CheckoutController extends Controller
         try {
             DB::beginTransaction();
 
-            // A. Cek Stok
-            $cartItems = Cart::with('variant')->where('user_id', $user->id)->get();
+            // 2. Cek Stok & Hitung Total
+            $cartItems = Cart::with('variant.product')->where('user_id', $user->id)->get();
             if ($cartItems->isEmpty()) throw new \Exception('Keranjang kosong');
+
             $totalPrice = 0;
             foreach ($cartItems as $item) {
                 if ($item->variant->stock < $item->quantity) {
-                    throw new \Exception("Stok {$item->product->name} kurang.");
+                    throw new \Exception("Stok {$item->variant->product->name} kurang/habis.");
                 }
                 $totalPrice += $item->variant->price * $item->quantity;
             }
 
-            // B. Simpan Alamat
-            $address = Address::create([
-                'user_id' => $user->id,
-                'recipient' => $request->recipient,
-                'complete_address' => $request->complete_address,
-                'city' => $request->city,
-                'postal_code' => $request->postal_code,
-                'is_default' => true,
-            ]);
+            // 3. Ambil Data Alamat dari ID yang dipilih user
+            $selectedAddress = Address::where('user_id', $user->id)->find($request->address_id);
 
-            if (empty($user->telp)) {
-                $user->update(['telp' => $request->phone]);
-            }
+            // Buat SNAPSHOT Alamat (String Panjang)
+            $addressSnapshot = "{$selectedAddress->recipient} ({$selectedAddress->phone}) | {$selectedAddress->complete_address}, {$selectedAddress->city}, {$selectedAddress->postal_code}";
 
-            // C. Buat Transaksi (Status: Pending)
+            // 4. Buat Transaksi
             $transaction = Transaction::create([
                 'user_id' => $user->id,
-                'address_id' => $address->id,
                 'total_price' => $totalPrice,
                 'status' => 'pending',
+                'delivery_courier' => $request->courier, // Simpan Kurir
+                'address' => $addressSnapshot, // Simpan Snapshot Alamat
             ]);
 
-            // D. Pindah Item
+            // 5. Pindahkan Item & Kurangi Stok
             foreach ($cartItems as $item) {
                 TransactionItem::create([
                     'transaction_id' => $transaction->id,
@@ -85,15 +84,16 @@ class CheckoutController extends Controller
                     'quantity' => $item->quantity,
                     'price' => $item->variant->price,
                 ]);
+
+                // Kurangi Stok Real
                 $item->variant->decrement('stock', $item->quantity);
             }
 
-            // E. Hapus Keranjang
+            // 6. Hapus Keranjang
             Cart::where('user_id', $user->id)->delete();
 
             DB::commit();
 
-            // === PASTI KE SINI (UPLOAD BUKTI) ===
             return redirect()->route('payment.show', $transaction->id);
         } catch (\Exception $e) {
             DB::rollBack();

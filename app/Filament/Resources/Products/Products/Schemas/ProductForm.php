@@ -71,9 +71,10 @@ class ProductForm
                                     ->label('Harga')
                                     ->prefix('Rp')
                                     ->numeric()
-                                    ->required(),
+                                    ->required()
+                                    ->columnSpanFull(),
                             ])
-                            ->columns(4)
+                            ->columns(3)
                             ->defaultItems(1)
                             ->addActionLabel('Tambah Varian Lagi'),
                     ]),

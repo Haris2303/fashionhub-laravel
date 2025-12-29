@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('address_id')->nullable()->constrained('addresses')->nullOnDelete();
             $table->decimal('total_price', 12, 2);
             $table->decimal('shipping_price', 12, 2)->default(0);
             $table->string('delivery_courier')->nullable();
