@@ -32,6 +32,8 @@ class AdminPanelProvider extends PanelProvider
             ->registration()
             ->passwordReset()
             ->profile()
+            ->favicon(asset('assets/logo.png'))
+            ->brandName('FashionHub')
             ->colors([
                 'primary' => Color::Amber,
             ])
