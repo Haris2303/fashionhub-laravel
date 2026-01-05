@@ -123,7 +123,7 @@ export default function Home({
                         </form>
 
                         {/* Menu Kanan */}
-                        <div className="flex items-center space-x-6 flex-shrink-0">
+                        <div className="flex items-center space-x-6 shrink-0">
                             {auth.user ? (
                                 <>
                                     <div className="hidden md:block">
@@ -131,27 +131,44 @@ export default function Home({
                                             Halo, {auth.user.name}
                                         </span>
                                     </div>
-                                    <Link
-                                        href="/my-orders"
-                                        className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition"
-                                    >
-                                        Pesanan Saya
-                                    </Link>
+
+                                    {auth.user.role != "admin" ? (
+                                        <>
+                                            <Link
+                                                href="/my-orders"
+                                                className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition"
+                                            >
+                                                Pesanan Saya
+                                            </Link>
+
+                                            <Link
+                                                href="/addresses"
+                                                className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition"
+                                            >
+                                                Alamat Saya
+                                            </Link>
+                                        </>
+                                    ) : (
+                                        <></>
+                                    )}
 
                                     <Link
-                                        href="/addresses"
-                                        className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition"
+                                        href="/logout"
+                                        method="post"
+                                        as="button"
+                                        type="button"
+                                        className="text-sm font-bold text-red-600 border border-red-200 px-3 py-1.5 rounded-lg hover:bg-red-50 transition"
                                     >
-                                        Alamat Saya
+                                        Logout
                                     </Link>
                                 </>
                             ) : (
-                                <Link
-                                    href="/login"
+                                <a
+                                    href="/admin/login"
                                     className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition"
                                 >
                                     Login
-                                </Link>
+                                </a>
                             )}
 
                             {/* --- ICON KERANJANG UPDATE --- */}
